@@ -9,6 +9,8 @@ describe "Authentication" do
 
     it { should have_content('Sign in') }
     it { should have_title('Sign in') }
+    it { should_not have_link('Profile')}
+    it { should_not have_link('Settings')}
   end
 
   require 'spec_helper'
@@ -54,6 +56,17 @@ describe "Authentication" do
 
   describe "authorization" do
 
+    describe "for signed-in user" do
+      let(:user) { FactoryGirl.create(:user) }
+      before { sign_in user } 
+
+      describe "when visit signup should not get sign up page" do
+        before { visit signup_path }
+        it { should_not have_title('Sign up') }
+       end
+
+    end
+
     describe "for non-signed-in users" do
       let(:user) { FactoryGirl.create(:user) }
 
@@ -88,6 +101,19 @@ describe "Authentication" do
         describe "visiting the user index" do
           before { visit users_path }
           it { should have_title('Sign in') }
+        end
+
+        describe "in the Microposts controller" do
+
+          describe "submitting to the create action" do
+            before { post microposts_path }
+            specify { expect(response).to redirect_to(signin_path) }
+          end
+
+          describe "submitting to the destroy action" do
+            before { delete micropost_path(FactoryGirl.create(:micropost)) }
+            specify { expect(response).to redirect_to(signin_path) }
+          end
         end
 
       end
